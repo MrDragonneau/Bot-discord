@@ -24,10 +24,6 @@ async def on_message(msg):
         if msg.content == "Bonjour":
             await msg.channel.send("Hey")
 
-
-@bot.event
-async def on_message(msg):
-    if not msg.author.bot:
         if msg.content == "Au-revoir":
             await msg.channel.send("à bientôt")
 
