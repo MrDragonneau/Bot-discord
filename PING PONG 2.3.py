@@ -1,5 +1,8 @@
 import discord
 from discord.ext import commands
+import os
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 bot = commands.Bot(command_prefix="!", description="bot de Zach")
 
@@ -46,5 +49,5 @@ async def invitation(ctx):
         await dm_chann.send("https://discord.gg/NrHmGXT")
         await ctx.message.delete()
 
-
-bot.run("NzQwMTk3Njk5NzQzMzgzNjM0.Xylg0w.C6V5pfK23S-_Xw08dLD4DyriwXg")
+if __name__ == '__main__':
+    bot.run(BOT_TOKEN)
