@@ -54,23 +54,26 @@ async def blague(ctx):
 
 @bot.command(aliases=["Juste_Prix", "JUSTE_PRIX", "juste_prix"])
 async def JP(ctx):
-    def SameChannel(msg):
-        return msg.channel == ctx.channel
+    def SameChannelUser(msg):
+        return msg.channel == ctx.channel and msg.author == ctx.author
 
     p = random.randint(0, 2500)
     running = True
     print(p)
     await ctx.channel.send("Entrer un nombre entier entre 0 et 2500 ")
+    tent = 0
     while running:
-        repNb = await bot.wait_for("message", check=SameChannel)
+        tent = tent + 1
+        repNb = await bot.wait_for("message", check=SameChannelUser)
         repNb = int(repNb.content)
         if repNb == p:
-            await ctx.channel.send("Gagné !")
+            await ctx.channel.send(f"Gagné !\nVous avez eu besoin de {tent} tentatives.")
             running = False
         elif repNb > p:
             await ctx.channel.send("C'est moins !")
         elif repNb < p:
             await ctx.channel.send("C'est plus !")
+
 
 if __name__ == '__main__':
     bot.run(BOT_TOKEN)
