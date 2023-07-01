@@ -68,6 +68,10 @@ async def JP(ctx):
         repNb = int(repNb.content)
         if repNb == p:
             await ctx.channel.send(f"Gagné !\nVous avez eu besoin de {tent} tentatives.")
+            if tent < 5:
+                await ctx.channel.send("Bravo vous êtes très fort !!")
+            else:
+                await ctx.channel.send("Bouuuuhh \"message méprisant\" !!!")
             running = False
         elif repNb > p:
             await ctx.channel.send("C'est moins !")
