@@ -1,8 +1,8 @@
-from discord.ext import commands
 import os
 import requests
 import discord
 import random
+from discord.ext import commands
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 intents = discord.Intents.all()
@@ -26,7 +26,7 @@ async def on_message(msg):
     await bot.process_commands(msg)
 
 
-@bot.command()
+@bot.command(aliases=["Invitation", "INVITATION", "INVITATIONS", "Invitations", "invitations"])
 async def invitation(ctx):
     dm_chan = await ctx.author.create_dm()
     await dm_chan.send("https://discord.gg/6CVXCDvykM")
@@ -77,6 +77,119 @@ async def JP(ctx):
             await ctx.channel.send("C'est moins !")
         elif repNb < p:
             await ctx.channel.send("C'est plus !")
+
+
+@bot.command(aliases=["CRYPT", "crypt", "krypt", "Krypt", "KRYPT"])
+async def Crypt(ctx):
+    guild = ctx.message.guild
+    channel = await guild.create_text_channel("test-channel")
+
+    def SameChannelUser(msg):
+        return msg.channel == channel and msg.author == ctx.author
+
+    def generate_keys():
+        p = random.randint(100000000, 999999999)
+        q = random.randint(100000000, 999999999)
+        while not is_prime(p):
+            p += 1
+        while not is_prime(q):
+            q += 1
+        n = p * q
+        phi = (p - 1) * (q - 1)
+        e = random.randint(2, phi - 1)
+        while gcd(e, phi) != 1:
+            e += 1
+        d = modinv(e, phi)
+        return (e, n), (d, n)
+
+    def is_prime(n):
+        if n <= 1:
+            return False
+        for i in range(2, int(n ** 0.5) + 1):
+            if n % i == 0:
+                return False
+        return True
+
+    def gcd(a, b):
+        while b != 0:
+            a, b = b, a % b
+        return a
+
+    def modinv(a, m):
+        g, x, y = gcd(a, m), 0, 1
+        if g != 1:
+            raise Exception('modular inverse does not exist')
+        else:
+            return pow(a, -1, m)
+
+    def encrypt(message, public_key):
+        e, n = public_key
+        return [pow(ord(c), e, n) for c in message]
+
+    def decrypt(ciphertext, private_key):
+        d, n = private_key
+        return ''.join([chr(pow(c, d, n)) for c in ciphertext])
+
+    async def main():
+        global private_key
+        while True:
+            await channel.send('Voulez-vous créer une paire de clés? [y/n]')
+            choice = await bot.wait_for("message", check=SameChannelUser)
+            choice = choice.content
+            if choice == 'y':
+                public_key, private_key = generate_keys()
+                await channel.send(f"Clé publique: {public_key[0]} {public_key[1]}")
+                dm_chan = await ctx.author.create_dm()
+                await dm_chan.send(f"Clé privée: {private_key[0]} {private_key[1]}")
+                await dm_chan.send(f"Clé publique: {public_key[0]} {public_key[1]}")
+                break
+            elif choice == 'n':
+                await channel.send('Entrez la clé publique')
+                public_key = await bot.wait_for("message", check=SameChannelUser)
+                public_key = public_key.content.split()
+                break
+            else:
+                await channel.send('Veuillez entrer y ou n')
+
+        while True:
+            await channel.send('Voulez-vous crypter un message? [y/n]')
+            choice = await bot.wait_for("message", check=SameChannelUser)
+            choice = choice.content
+            if choice == 'y':
+                await channel.delete()
+                dm_chan = await ctx.author.create_dm()
+                await dm_chan.send('Entrez le message à crypter')
+                message = await bot.wait_for("message", check=on_message)
+                message = message.content
+                ciphertext = encrypt(message, public_key)
+                await ctx.channel.send("Ciphertext: " + " ".join(str(x) for x in ciphertext))
+                break
+            elif choice == 'n':
+                break
+            else:
+                await ctx.channel.send('Veuillez entrer y ou n')
+
+        while True:
+            await channel.send('Voulez-vous décrypter un message? [y/n]')
+            choice = await bot.wait_for("message", check=SameChannelUser)
+            choice = choice.content
+            if choice == 'y':
+                if 'private_key' not in locals():
+                    private_key = tuple(map(int, input('Entrez la clé privée').split()))
+                ciphertext = list(map(int, input('Entrez le message chiffré').split()))
+                plaintext = decrypt(ciphertext, private_key)
+                await ctx.channel.send(f"Plaintext: {plaintext}")
+                break
+            elif choice == 'n':
+                await channel.delete()
+                break
+            else:
+                await ctx.channel.send('Veuillez entrer y ou n')
+
+    await ctx.message.delete()
+    #    await channel.delete()
+    if __name__ == '__main__':
+        await main()
 
 
 if __name__ == '__main__':
