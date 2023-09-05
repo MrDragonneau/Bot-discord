@@ -6,7 +6,7 @@ from discord.ext import commands
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 intents = discord.Intents.all()
-bot = commands.Bot(command_prefix="!", description="bot de Zach", intents=intents)
+bot = commands.Bot(command_prefix="!", description="Bot de Azashire", intents=intents)
 
 
 @bot.event
@@ -141,8 +141,10 @@ async def Crypt(ctx):
                 public_key, private_key = generate_keys()
                 await channel.send(f"Clé publique: {public_key[0]} {public_key[1]}")
                 dm_chan = await ctx.author.create_dm()
-                await dm_chan.send(f"Clé privée: {private_key[0]} {private_key[1]}")
-                await dm_chan.send(f"Clé publique: {public_key[0]} {public_key[1]}")
+                await dm_chan.send("Clé privée :")
+                await dm_chan.send(f"{private_key[0]} {private_key[1]}")
+                await dm_chan.send("Clé publique :")
+                await dm_chan.send(f"{public_key[0]} {public_key[1]}")
                 break
             elif choice == 'n':
                 break
@@ -173,9 +175,8 @@ async def Crypt(ctx):
                 await ctx.channel.send('Veuillez entrer y ou n')
 
         while True:
-            dm_chan = await ctx.author.create_dm()
-            await dm_chan.send('Voulez-vous décrypter un message? [y/n]')
-            message = await bot.wait_for("message")
+            await ctx.channel.send('Voulez-vous décrypter un message? [y/n]')
+            message = await bot.wait_for("message", check=SameChannelUser)
             choice = message
             choice = choice.content
             if choice == 'y':
