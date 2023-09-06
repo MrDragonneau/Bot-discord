@@ -79,11 +79,13 @@ async def JP(ctx):
             await ctx.channel.send("C'est plus !")
 
 
+
 @bot.command(aliases=["CRYPT", "crypt", "krypt", "Krypt", "KRYPT"])
 async def Crypt(ctx):
     guild = ctx.message.guild
     await ctx.message.delete()
     channel = await guild.create_text_channel("canal-de-cryptage")
+
 
     def SameChannelUser(msg):
         return msg.channel == channel and msg.author == ctx.author
@@ -130,22 +132,28 @@ async def Crypt(ctx):
     def decrypt(ciphertext, private_key):
         d, n = private_key
         return ''.join([chr(pow(c, d, n)) for c in ciphertext])
-
+    async def mention(ctx, user: discord.User):
+        await ctx.send(f"{user.mention}")
     async def main():
         global private_key
         while True:
+            author = ctx.author
             await channel.send('Voulez-vous créer une paire de clés? [y/n]')
             choice = await bot.wait_for("message", check=SameChannelUser)
             choice = choice.content
             if choice == 'y':
+                keyHaBeGe = 0
                 public_key, private_key = generate_keys()
                 dm_chan = await ctx.author.create_dm()
+                await ctx.channel.send("Voici une des clés publique de " + f"{author.mention}" + ":")
+                await ctx.channel.send(f"{public_key[0]} {public_key[1]}")
                 await channel.send("Clé publique :")
                 await channel.send(f"{public_key[0]} {public_key[1]}")
                 await dm_chan.send("Clé privée :")
                 await dm_chan.send(f"{private_key[0]} {private_key[1]}")
                 await dm_chan.send("Clé publique :")
                 await dm_chan.send(f"{public_key[0]} {public_key[1]}")
+                keyHaBeGe = 1
                 break
             elif choice == 'n':
                 break
@@ -157,19 +165,35 @@ async def Crypt(ctx):
             choice = await bot.wait_for("message", check=SameChannelUser)
             choice = choice.content
             if choice == 'y':
-                await channel.send('Entrez la clé publique')
-                public_key = await bot.wait_for("message", check=SameChannelUser)
-                public_key = public_key.content.split()
-                public_key = map(int, public_key)
-                dm_chan = await ctx.author.create_dm()
-                await dm_chan.send('Entrez le message à crypter')
-                message = await bot.wait_for("message")
-                message = message.content
-                ciphertext = encrypt(message, public_key)
-                await dm_chan.send("Message crypté: ")
-                await dm_chan.send("" + " ".join(str(x) for x in ciphertext))
-                await channel.delete()
-                break
+                if keyHaBeGe == 1:
+                    public_key = f"{public_key[0]} {public_key[1]}"
+                    public_key = public_key.split()
+                    public_key = map(int, public_key)
+                    dm_chan = await ctx.author.create_dm()
+                    await dm_chan.send('Entrez le message à crypter')
+                    message = await bot.wait_for("message")
+                    message = message.content
+                    ciphertext = encrypt(message, public_key)
+                    await dm_chan.send("Message crypté: ")
+                    await dm_chan.send("" + " ".join(str(x) for x in ciphertext))
+                    await channel.delete()
+                    break
+                elif keyHaBeGe == 0:
+                    await channel.send('Entrez la clé publique')
+                    public_key = await bot.wait_for("message", check=SameChannelUser)
+                    public_key = public_key.content.split()
+                    public_key = map(int, public_key)
+                    dm_chan = await ctx.author.create_dm()
+                    await dm_chan.send('Entrez le message à crypter')
+                    message = await bot.wait_for("message")
+                    message = message.content
+                    ciphertext = encrypt(message, public_key)
+                    await dm_chan.send("Message crypté: ")
+                    await dm_chan.send("" + " ".join(str(x) for x in ciphertext))
+                    await channel.delete()
+                    break
+                else:
+                    break
             elif choice == 'n':
                 await channel.delete()
                 break
@@ -183,21 +207,59 @@ async def Crypt(ctx):
             choice = message
             choice = choice.content
             if choice == 'y':
-                dm_chan = await ctx.author.create_dm()
-                await dm_chan.send('Entrez la clé privé')
-                message = await bot.wait_for("message")
-                private_key = message
-                private_key = private_key.content.split()
-                private_key = map(int, private_key)
-                await dm_chan.send('Entrez le message crypté')
-                message = await bot.wait_for("message")
-                ciphertext = message
-                ciphertext = ciphertext.content.split()
-                ciphertext = map(int, ciphertext)
-                plaintext = decrypt(ciphertext, private_key)
-                await dm_chan.send("Le message crypté est:")
-                await dm_chan.send(f"{plaintext}")
-                break
+                if keyHaBeGe == 1:
+                    dm_chan = await ctx.author.create_dm()
+                    await dm_chan.send("Voulez vous utiliser une autre clé privé [y/n]")
+                    message = await bot.wait_for("message")
+                    choice = message
+                    choice = choice.content
+                    if choice == 'y':
+                        await dm_chan.send('Entrez la clé privé')
+                        message = await bot.wait_for("message")
+                        private_key = message
+                        private_key = private_key.content.split()
+                        private_key = map(int, private_key)
+                        await dm_chan.send('Entrez le message crypté')
+                        message = await bot.wait_for("message")
+                        ciphertext = message
+                        ciphertext = ciphertext.content.split()
+                        ciphertext = map(int, ciphertext)
+                        plaintext = decrypt(ciphertext, private_key)
+                        await dm_chan.send("Le message crypté est:")
+                        await dm_chan.send(f"{plaintext}")
+                        break
+                    elif choice == 'n':
+                        private_key = f"{private_key[0]} {private_key[1]}"
+                        private_key = private_key.split()
+                        private_key = map(int, private_key)
+                        await dm_chan.send('Entrez le message crypté')
+                        message = await bot.wait_for("message")
+                        ciphertext = message
+                        ciphertext = ciphertext.content.split()
+                        ciphertext = map(int, ciphertext)
+                        plaintext = decrypt(ciphertext, private_key)
+                        await dm_chan.send("Le message crypté est:")
+                        await dm_chan.send(f"{plaintext}")
+                        break
+                    else:
+                        await dm_chan.send('Veuillez entrer y ou n')
+                elif keyHaBeGe == 0:
+                    await dm_chan.send('Entrez la clé privé')
+                    message = await bot.wait_for("message")
+                    private_key = message
+                    private_key = private_key.content.split()
+                    private_key = map(int, private_key)
+                    await dm_chan.send('Entrez le message crypté')
+                    message = await bot.wait_for("message")
+                    ciphertext = message
+                    ciphertext = ciphertext.content.split()
+                    ciphertext = map(int, ciphertext)
+                    plaintext = decrypt(ciphertext, private_key)
+                    await dm_chan.send("Le message crypté est:")
+                    await dm_chan.send(f"{plaintext}")
+                    break
+                else:
+                    break
             elif choice == 'n':
                 break
             else:
