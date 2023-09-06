@@ -79,13 +79,11 @@ async def JP(ctx):
             await ctx.channel.send("C'est plus !")
 
 
-
-@bot.command(aliases=["CRYPT", "crypt", "krypt", "Krypt", "KRYPT"])
-async def Crypt(ctx):
+@bot.command(aliases=["CRYPTER", "crypter", "krypter", "Krypter", "KRYPTER"])
+async def Crypter(ctx):
     guild = ctx.message.guild
     await ctx.message.delete()
     channel = await guild.create_text_channel("canal-de-cryptage")
-
 
     def SameChannelUser(msg):
         return msg.channel == channel and msg.author == ctx.author
@@ -132,8 +130,7 @@ async def Crypt(ctx):
     def decrypt(ciphertext, private_key):
         d, n = private_key
         return ''.join([chr(pow(c, d, n)) for c in ciphertext])
-    async def mention(ctx, user: discord.User):
-        await ctx.send(f"{user.mention}")
+
     async def main():
         global private_key
         while True:
@@ -141,19 +138,29 @@ async def Crypt(ctx):
             await channel.send('Voulez-vous créer une paire de clés? [y/n]')
             choice = await bot.wait_for("message", check=SameChannelUser)
             choice = choice.content
+            keyHaBeGe = False
             if choice == 'y':
-                keyHaBeGe = 0
                 public_key, private_key = generate_keys()
                 dm_chan = await ctx.author.create_dm()
-                await ctx.channel.send("Voici une des clés publique de " + f"{author.mention}" + ":")
-                await ctx.channel.send(f"{public_key[0]} {public_key[1]}")
-                await channel.send("Clé publique :")
-                await channel.send(f"{public_key[0]} {public_key[1]}")
                 await dm_chan.send("Clé privée :")
                 await dm_chan.send(f"{private_key[0]} {private_key[1]}")
                 await dm_chan.send("Clé publique :")
                 await dm_chan.send(f"{public_key[0]} {public_key[1]}")
-                keyHaBeGe = 1
+                keyHaBeGe = True
+                while True:
+                    await dm_chan.send("Voulez vous partager votre clé publique [y/n]")
+                    message = await bot.wait_for("message")
+                    choice = message
+                    choice = choice.content
+                    if choice == 'y':
+                        await ctx.channel.send("Voici une des clés publique de " + f"{author.mention}" + ":")
+                        await ctx.channel.send(f"{public_key[0]} {public_key[1]}")
+                        break
+                    elif choice == 'n':
+                        await dm_chan.send("ok")
+                        break
+                    else:
+                        await dm_chan.send('Veuillez entrer y ou n')
                 break
             elif choice == 'n':
                 break
@@ -165,7 +172,7 @@ async def Crypt(ctx):
             choice = await bot.wait_for("message", check=SameChannelUser)
             choice = choice.content
             if choice == 'y':
-                if keyHaBeGe == 1:
+                if keyHaBeGe:
                     public_key = f"{public_key[0]} {public_key[1]}"
                     public_key = public_key.split()
                     public_key = map(int, public_key)
@@ -178,7 +185,7 @@ async def Crypt(ctx):
                     await dm_chan.send("" + " ".join(str(x) for x in ciphertext))
                     await channel.delete()
                     break
-                elif keyHaBeGe == 0:
+                elif not keyHaBeGe:
                     await channel.send('Entrez la clé publique')
                     public_key = await bot.wait_for("message", check=SameChannelUser)
                     public_key = public_key.content.split()
@@ -207,7 +214,7 @@ async def Crypt(ctx):
             choice = message
             choice = choice.content
             if choice == 'y':
-                if keyHaBeGe == 1:
+                if keyHaBeGe:
                     dm_chan = await ctx.author.create_dm()
                     await dm_chan.send("Voulez vous utiliser une autre clé privé [y/n]")
                     message = await bot.wait_for("message")
@@ -243,7 +250,8 @@ async def Crypt(ctx):
                         break
                     else:
                         await dm_chan.send('Veuillez entrer y ou n')
-                elif keyHaBeGe == 0:
+
+                elif not keyHaBeGe:
                     await dm_chan.send('Entrez la clé privé')
                     message = await bot.wait_for("message")
                     private_key = message
@@ -264,9 +272,152 @@ async def Crypt(ctx):
                 break
             else:
                 await dm_chan.send('Veuillez entrer y ou n')
-
     if __name__ == '__main__':
         await main()
+
+
+@bot.command(aliases=["CRYPT", "crypt", "krypt", "Krypt", "KRYPT"])
+async def Crypt(ctx):
+    guild = ctx.message.guild
+    await ctx.message.delete()
+
+    def is_prime(n):
+        if n <= 1:
+            return False
+        for i in range(2, int(n ** 0.5) + 1):
+            if n % i == 0:
+                return False
+        return True
+
+    def gcd(a, b):
+        while b != 0:
+            a, b = b, a % b
+        return a
+
+    def modinv(a, m):
+        g, x, y = gcd(a, m), 0, 1
+        if g != 1:
+            raise Exception('modular inverse does not exist')
+        else:
+            return pow(a, -1, m)
+
+    def encrypt(message, public_key):
+        e, n = public_key
+        return [pow(ord(c), e, n) for c in message]
+
+    dm_chan = await ctx.author.create_dm()
+    await dm_chan.send('Entrez la clé publique')
+    public_key = await bot.wait_for("message")
+    public_key = public_key.content.split()
+    public_key = map(int, public_key)
+    await dm_chan.send('Entrez le message à crypter')
+    message = await bot.wait_for("message")
+    message = message.content
+    ciphertext = encrypt(message, public_key)
+    await dm_chan.send("Message crypté: ")
+    await dm_chan.send("" + " ".join(str(x) for x in ciphertext))
+
+
+@bot.command(aliases=["DECRYPT", "decrypt", "dekrypt", "Dekrypt", "DEKRYPT"])
+async def Decrypt(ctx):
+    guild = ctx.message.guild
+    await ctx.message.delete()
+
+    def decrypt(ciphertext, private_key):
+        d, n = private_key
+        return ''.join([chr(pow(c, d, n)) for c in ciphertext])
+
+    while True:
+        dm_chan = await ctx.author.create_dm()
+        await dm_chan.send('Entrez la clé privé')
+        message = await bot.wait_for("message")
+        private_key = message
+        private_key = private_key.content.split()
+        private_key = map(int, private_key)
+        await dm_chan.send('Entrez le message crypté')
+        message = await bot.wait_for("message")
+        ciphertext = message
+        ciphertext = ciphertext.content.split()
+        ciphertext = map(int, ciphertext)
+        plaintext = decrypt(ciphertext, private_key)
+        await dm_chan.send("Le message crypté est:")
+        await dm_chan.send(f"{plaintext}")
+        break
+
+
+@bot.command(aliases=["GENERATE", "Generate"])
+async def generate(ctx):
+    await ctx.message.delete()
+
+    def generate_keys():
+        p = random.randint(100000000, 999999999)
+        q = random.randint(100000000, 999999999)
+        while not is_prime(p):
+            p += 1
+        while not is_prime(q):
+            q += 1
+        n = p * q
+        phi = (p - 1) * (q - 1)
+        e = random.randint(2, phi - 1)
+        while gcd(e, phi) != 1:
+            e += 1
+        d = modinv(e, phi)
+        return (e, n), (d, n)
+
+    def is_prime(n):
+        if n <= 1:
+            return False
+        for i in range(2, int(n ** 0.5) + 1):
+            if n % i == 0:
+                return False
+        return True
+
+    def gcd(a, b):
+        while b != 0:
+            a, b = b, a % b
+        return a
+
+    def modinv(a, m):
+        g, x, y = gcd(a, m), 0, 1
+        if g != 1:
+            raise Exception('modular inverse does not exist')
+        else:
+            return pow(a, -1, m)
+
+    author = ctx.author
+    public_key, private_key = generate_keys()
+    dm_chan = await ctx.author.create_dm()
+    await dm_chan.send("Clé privée :")
+    await dm_chan.send(f"{private_key[0]} {private_key[1]}")
+    await dm_chan.send("Clé publique :")
+    await dm_chan.send(f"{public_key[0]} {public_key[1]}")
+
+    while True:
+        await dm_chan.send("Voulez vous partager votre clé publique [y/n]")
+        message = await bot.wait_for("message")
+        choice = message
+        choice = choice.content
+        if choice == 'y':
+            await ctx.channel.send("Voici une des clés publique de " + f"{author.mention}" + ":")
+            await ctx.channel.send(f"{public_key[0]} {public_key[1]}")
+            break
+        elif choice == 'n':
+            await dm_chan.send("ok")
+            break
+        else:
+            await dm_chan.send('Veuillez entrer y ou n')
+
+
+@bot.event
+async def on_message(msg):
+    if not msg.author.bot:
+        if msg.content == "Ping":
+            await msg.channel.send("Pong")
+
+        if msg.content == "ping":
+            await msg.channel.send("pong")
+
+    await bot.process_commands(msg)
 
 
 if __name__ == '__main__':
