@@ -79,11 +79,11 @@ async def JP(ctx):
             await ctx.channel.send("C'est plus !")
 
 
-@bot.command(aliases=["CRYPTER", "crypter", "krypter", "Krypter", "KRYPTER"])
-async def Crypter(ctx):
+@bot.command(aliases=["CHIFRER", "chifrer"])
+async def Chifrer(ctx):
     guild = ctx.message.guild
     await ctx.message.delete()
-    channel = await guild.create_text_channel("canal-de-cryptage")
+    channel = await guild.create_text_channel("canal-de-chiffrage")
 
     def SameChannelUser(msg):
         return msg.channel == channel and msg.author == ctx.author
@@ -168,7 +168,7 @@ async def Crypter(ctx):
                 await channel.send("Veuillez entrer y ou n")
 
         while True:
-            await channel.send('Voulez-vous crypter un message? [y/n]')
+            await channel.send('Voulez-vous chiffrer un message? [y/n]')
             choice = await bot.wait_for("message", check=SameChannelUser)
             choice = choice.content
             if choice == 'y':
@@ -177,11 +177,11 @@ async def Crypter(ctx):
                     public_key = public_key.split()
                     public_key = map(int, public_key)
                     dm_chan = await ctx.author.create_dm()
-                    await dm_chan.send('Entrez le message à crypter')
+                    await dm_chan.send('Entrez le message à chiffrer')
                     message = await bot.wait_for("message")
                     message = message.content
                     ciphertext = encrypt(message, public_key)
-                    await dm_chan.send("Message crypté: ")
+                    await dm_chan.send("Message chiffré: ")
                     await dm_chan.send("" + " ".join(str(x) for x in ciphertext))
                     await channel.delete()
                     break
@@ -191,11 +191,11 @@ async def Crypter(ctx):
                     public_key = public_key.content.split()
                     public_key = map(int, public_key)
                     dm_chan = await ctx.author.create_dm()
-                    await dm_chan.send('Entrez le message à crypter')
+                    await dm_chan.send('Entrez le message à chiffrer')
                     message = await bot.wait_for("message")
                     message = message.content
                     ciphertext = encrypt(message, public_key)
-                    await dm_chan.send("Message crypté: ")
+                    await dm_chan.send("Message chiffré: ")
                     await dm_chan.send("" + " ".join(str(x) for x in ciphertext))
                     await channel.delete()
                     break
@@ -209,7 +209,7 @@ async def Crypter(ctx):
 
         while True:
             dm_chan = await ctx.author.create_dm()
-            await dm_chan.send('Voulez-vous décrypter un message? [y/n]')
+            await dm_chan.send('Voulez-vous déchiffrer un message? [y/n]')
             message = await bot.wait_for("message")
             choice = message
             choice = choice.content
@@ -226,26 +226,26 @@ async def Crypter(ctx):
                         private_key = message
                         private_key = private_key.content.split()
                         private_key = map(int, private_key)
-                        await dm_chan.send('Entrez le message crypté')
+                        await dm_chan.send('Entrez le message chiffré')
                         message = await bot.wait_for("message")
                         ciphertext = message
                         ciphertext = ciphertext.content.split()
                         ciphertext = map(int, ciphertext)
                         plaintext = decrypt(ciphertext, private_key)
-                        await dm_chan.send("Le message crypté est:")
+                        await dm_chan.send("Le message chiffré est:")
                         await dm_chan.send(f"{plaintext}")
                         break
                     elif choice == 'n':
                         private_key = f"{private_key[0]} {private_key[1]}"
                         private_key = private_key.split()
                         private_key = map(int, private_key)
-                        await dm_chan.send('Entrez le message crypté')
+                        await dm_chan.send('Entrez le message chiffré')
                         message = await bot.wait_for("message")
                         ciphertext = message
                         ciphertext = ciphertext.content.split()
                         ciphertext = map(int, ciphertext)
                         plaintext = decrypt(ciphertext, private_key)
-                        await dm_chan.send("Le message crypté est:")
+                        await dm_chan.send("Le message chiffré est:")
                         await dm_chan.send(f"{plaintext}")
                         break
                     else:
@@ -257,13 +257,13 @@ async def Crypter(ctx):
                     private_key = message
                     private_key = private_key.content.split()
                     private_key = map(int, private_key)
-                    await dm_chan.send('Entrez le message crypté')
+                    await dm_chan.send('Entrez le message chiffré')
                     message = await bot.wait_for("message")
                     ciphertext = message
                     ciphertext = ciphertext.content.split()
                     ciphertext = map(int, ciphertext)
                     plaintext = decrypt(ciphertext, private_key)
-                    await dm_chan.send("Le message crypté est:")
+                    await dm_chan.send("Le message chiffré est:")
                     await dm_chan.send(f"{plaintext}")
                     break
                 else:
@@ -276,8 +276,8 @@ async def Crypter(ctx):
         await main()
 
 
-@bot.command(aliases=["CRYPT", "crypt", "krypt", "Krypt", "KRYPT"])
-async def Crypt(ctx):
+@bot.command(aliases=["chifr", "CHIFR"])
+async def Chifr(ctx):
     guild = ctx.message.guild
     await ctx.message.delete()
 
@@ -310,16 +310,16 @@ async def Crypt(ctx):
     public_key = await bot.wait_for("message")
     public_key = public_key.content.split()
     public_key = map(int, public_key)
-    await dm_chan.send('Entrez le message à crypter')
+    await dm_chan.send('Entrez le message à chiffrer')
     message = await bot.wait_for("message")
     message = message.content
     ciphertext = encrypt(message, public_key)
-    await dm_chan.send("Message crypté: ")
+    await dm_chan.send("Message chiffré: ")
     await dm_chan.send("" + " ".join(str(x) for x in ciphertext))
 
 
-@bot.command(aliases=["DECRYPT", "decrypt", "dekrypt", "Dekrypt", "DEKRYPT"])
-async def Decrypt(ctx):
+@bot.command(aliases=["DECHIFR", "dechifr"])
+async def Dechifr(ctx):
     guild = ctx.message.guild
     await ctx.message.delete()
 
@@ -331,16 +331,16 @@ async def Decrypt(ctx):
         dm_chan = await ctx.author.create_dm()
         await dm_chan.send('Entrez la clé privé')
         message = await bot.wait_for("message")
-        private_key = message
-        private_key = private_key.content.split()
-        private_key = map(int, private_key)
-        await dm_chan.send('Entrez le message crypté')
+        private_ke = message
+        private_ke = private_ke.content.split()
+        private_ke = map(int, private_ke)
+        await dm_chan.send('Entrez le message chiffré')
         message = await bot.wait_for("message")
         ciphertext = message
         ciphertext = ciphertext.content.split()
         ciphertext = map(int, ciphertext)
-        plaintext = decrypt(ciphertext, private_key)
-        await dm_chan.send("Le message crypté est:")
+        plaintext = decrypt(ciphertext, private_ke)
+        await dm_chan.send("Le message chiffré est:")
         await dm_chan.send(f"{plaintext}")
         break
 
